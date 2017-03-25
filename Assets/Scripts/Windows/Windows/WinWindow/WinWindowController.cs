@@ -8,25 +8,26 @@ using UnityEngine.UI;
 public class WinWindowController : Window
 {
 	public WinWindowView WindowView;
-	public Text WinnerName;
+
+	private Stage _winnerStage;
+	private List<AbstractUser> users;
 
 	private void Awake()
 	{
 		WindowView.RestartButtonClick += OnRestartButtonClick;
-		WindowView.ToMainMenuButtonClick += OnToMainMEnuButtonClick;
+		WindowView.ToMainMenuButtonClick += OnToMainMenuButtonClick;
 	}
 
-
-
-	private void OnToMainMEnuButtonClick()
+	private void OnToMainMenuButtonClick()
 	{
-		WindowManager.Instance.GetWindow<StartWindowController>();
+		SceneLoadManager.Instance.StartLoadScene(ScenesToLoad.PregameScene, () => { });
 		CloseWindow();
 	}
 
 	private void OnRestartButtonClick()
 	{
-		GameManager.Instance.GamePreparation();
+		GameManager.Instance.PrepareGameForNextRound();
+		CloseWindow();
 	}
 
 	public override void CloseWindow()
@@ -34,10 +35,41 @@ public class WinWindowController : Window
 		base.CloseWindow();
 	}
 
-	public override void OpenWindow(Hashtable table = null)
+	public override void OpenWindow(IInputWindowPatamerer windowParameter)
 	{
-		WinnerName.text = table["name"].ToString();
-		base.OpenWindow();
+		var neededParameter = windowParameter.GetOriginWindowParameter<WinWindowInputParameter>();
+		_winnerStage = neededParameter.WinnerStage;
+		users = neededParameter.Users;
+		base.OpenWindow(windowParameter);
+		InitWindow();
+
+
+	}
+
+	private void InitWindow()
+	{
+		var winnerName = (_winnerStage == Stage.NAN) ? "Draw" : UserController.Instance.GetUserByStage(_winnerStage).GetName();
+		WindowView.SetCurrentWinnerLabel(winnerName);
+		users.ForEach(user =>
+		{
+			var playerItem = Instantiate(WindowView.PlayerItemInstance) as PlayerInformationItem;
+			playerItem.transform.SetParent(WindowView.ItemsGrid.transform, false);
+			playerItem.InitItem(user.GetName(), user.GetScore().ToString());
+		});
+
+	}
+
+	private void OnDisable()
+	{
+		ClearGrid();
+	}
+
+	private void ClearGrid()
+	{
+		foreach (Transform item in WindowView.ItemsGrid.transform)
+		{
+			Destroy(item.gameObject);
+		}
 	}
 
 }

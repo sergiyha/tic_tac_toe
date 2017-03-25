@@ -9,36 +9,51 @@ public class CellController : MonoBehaviour
 	private static CellController _instance;
 	public static CellController Instance { get { return _instance = _instance ?? FindObjectOfType<CellController>(); } }
 
-	public static event Action CellChanged;
+	public Action CellChanged;
+	public static event Action<Stage> RoundEnds;
 
 	public CellController()
 	{
 	}
 
-	public GroundCell[] cells;
+	public GroundCell[] cells = new GroundCell[9];
 	public Stage[] CurrentGameCellsPlace { get; private set; }
 
 	private void Awake()
 	{
-		SubscribeOnCells();
+		if (_instance != null && _instance != this)
+		{
+			Destroy(this.gameObject);
+		}
+		else
+		{
+			_instance = this;
+		}
+
+		DontDestroyOnLoad(this);
 	}
 
-
-	private void SubscribeOnCells()
+	public void TryToAddNewCell(GroundCell cell)
 	{
-		cells.ToList().ForEach(cell => cell.Click += OnCellClick);
+		cells[cell.CellNumber] = cell;
+		if (cell.Click == null)
+			cell.Click += OnCellClick;
+	}
+
+	public void OnDisable()
+	{
+		cells = new GroundCell[9];
 	}
 
 	private void OnCellClick(int cellNumber)
 	{
-		cells[cellNumber].ChangeCell(UserController.Instance.currentUser.UserStage);
-		CurrentGameCellsPlace[cellNumber] = UserController.Instance.currentUser.UserStage;
+		cells[cellNumber].ChangeCell(UserController.Instance.currentUser.GetUserStage());
+		CurrentGameCellsPlace[cellNumber] = UserController.Instance.currentUser.GetUserStage();
 
 		if (CheckWinningCombination()) return;
 		var handler = CellChanged;
 		if (handler != null) handler();
 		else Debug.Log("Action  CellChanged is null at :" + this);
-
 	}
 
 	private bool CheckIfFreeCellsExist()
@@ -61,7 +76,8 @@ public class CellController : MonoBehaviour
 
 		if (!CheckIfFreeCellsExist())
 		{
-			WindowManager.Instance.GetWindow<WinWindowController>(new Hashtable { { "name", "Draw" } });
+			GameManager.Instance.RoundEnds(Stage.NAN);
+			WindowManager.Instance.GetWindow<WinWindowController>(new WinWindowInputParameter(UserController.Instance.users, Stage.NAN));
 			return true;
 		}
 		return false;
@@ -71,7 +87,8 @@ public class CellController : MonoBehaviour
 	{
 		if (IsWinning(stage))
 		{
-			WindowManager.Instance.GetWindow<WinWindowController>(new Hashtable { { "name", UserController.Instance.GetUserNameByStage(stage) } });
+			GameManager.Instance.RoundEnds(stage);
+			WindowManager.Instance.GetWindow<WinWindowController>(new WinWindowInputParameter(UserController.Instance.users, stage));
 			return true;
 		}
 		return false;

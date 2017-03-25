@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -10,7 +11,37 @@ public class GameManager : MonoBehaviour
 	private GameManager() { }
 
 	public GameType CurrGameType { get; private set; }
+	public Stage CurrentWinnerStage
+	{
+		get; private set;
+	}
 
+	public Action<Stage> RoundEnds;
+	public static Action<Stage> RoundBegins;
+
+	private void Awake()
+	{
+		if (_instance != null && _instance != this)
+		{
+			Destroy(this.gameObject);
+		}
+		else
+		{
+			_instance = this;
+		}
+
+		DontDestroyOnLoad(this);
+		if (RoundEnds == null)
+		{
+			RoundEnds += CacheCurrentWinner;
+		}
+
+	}
+
+	private void CacheCurrentWinner(Stage winnerStage)
+	{
+		CurrentWinnerStage = winnerStage;
+	}
 
 	public void StartGame(GameType gameType)
 	{
@@ -21,8 +52,6 @@ public class GameManager : MonoBehaviour
 
 	public void GamePreparation()
 	{
-		WindowManager.Instance.CloseCurrentWindow();
-		CellController.Instance.RefreshCellsData();
 		switch (CurrGameType)
 		{
 			case GameType.OneVsOne:
@@ -38,6 +67,22 @@ public class GameManager : MonoBehaviour
 				break;
 		}
 
+		SceneLoadManager.Instance.StartLoadScene(ScenesToLoad.FirstScene, _firstSceneCallback);
+
 	}
 
+	public void PrepareGameForNextRound()
+	{
+		RoundBegins(CurrentWinnerStage);
+		CellController.Instance.RefreshCellsData();
+		UserController.Instance.ChooseCurrentPlayer();
+	}
+
+	private void _firstSceneCallback()
+	{
+		CellController.Instance.RefreshCellsData();
+		UserController.Instance.ChooseCurrentPlayer();
+	}
 }
+
+

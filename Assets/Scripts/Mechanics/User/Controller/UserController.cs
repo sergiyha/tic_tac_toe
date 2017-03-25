@@ -11,15 +11,32 @@ public class UserController : MonoBehaviour
 	private UserController() { }
 
 	public AbstractUser currentUser { get; private set; }
+	private AbstractUser userWasFirst { get; set; }
+
 	public List<AbstractUser> users { get; private set; }
 
 	private void Awake()
 	{
-		CellController.CellChanged += OnCellChanged;
+		if (_instance != null && _instance != this)
+		{
+			Destroy(this.gameObject);
+		}
+		else
+		{
+			_instance = this;
+		}
+
+		DontDestroyOnLoad(this);
+		if (CellController.Instance.CellChanged == null)
+		{
+			CellController.Instance.CellChanged += OnCellChanged;
+		}
 	}
+
 
 	public void OnCellChanged()
 	{
+		Debug.Log("++++++++++++ChangeCell");
 		currentUser = users.SingleOrDefault(user => user != currentUser);
 		currentUser.Play();
 	}
@@ -55,15 +72,41 @@ public class UserController : MonoBehaviour
 			(T)Activator.CreateInstance(typeof(T), signature_1),
 			(L)Activator.CreateInstance(typeof(L), signature_2)
 		};
-		currentUser = users.SingleOrDefault(user => user.UserStage == Stage.CROSS);
+		currentUser = users.SingleOrDefault(user => user.GetUserStage() == Stage.CROSS);
+		userWasFirst = currentUser;
 
-		if (users.First().GetType() == typeof(Bot))
-			currentUser.Play();
+		//if (users.First().GetType() == typeof(Bot))
+		//	currentUser.Play();
 	}
+
+	//public void LetsGameStarted()
+	//{
+	//	if (currentUser is Bot && currentUser.GetUserStage() == Stage.CROSS)
+	//	{
+	//		currentUser.Play();
+	//	}
+	//}
+
+	public void ChooseCurrentPlayer()
+	{
+		currentUser = GetUserByStage(Stage.CROSS);
+		currentUser.Play();
+	}
+
 
 	public string GetUserNameByStage(Stage stage)
 	{
-		var neededUser = users.SingleOrDefault(user => user.UserStage == stage);
-		return neededUser.Name;
+		return GetUserByStage(stage).GetName();
+	}
+
+	public AbstractUser GetUserByStage(Stage stage)
+	{
+		return users.SingleOrDefault(user => user.GetUserStage() == stage);
+
+	}
+
+	public void OnDisable()
+	{
+		CellController.Instance.CellChanged -= OnCellChanged;
 	}
 }

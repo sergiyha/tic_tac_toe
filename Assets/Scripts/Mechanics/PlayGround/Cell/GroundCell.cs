@@ -11,11 +11,12 @@ public class GroundCell : MonoBehaviour
 	public Image Zero;
 	public int CellNumber;
 
-	public event Action<int> Click;
+	public Action<int> Click;
 
 	private void Awake()
 	{
 		SetButton.onClick.AddListener(delegate { SetButton.enabled = false; Click(CellNumber); });
+		CellController.Instance.TryToAddNewCell(this);
 	}
 
 

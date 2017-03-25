@@ -6,7 +6,7 @@ namespace UI.Window
 {
 	public abstract class Window : MonoBehaviour
 	{
-		public virtual void OpenWindow(Hashtable table = null)
+		public virtual void OpenWindow(IInputWindowPatamerer windowParameter)
 		{
 			this.gameObject.SetActive(true);
 		}

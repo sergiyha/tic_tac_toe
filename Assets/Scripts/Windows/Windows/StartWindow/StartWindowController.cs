@@ -30,9 +30,9 @@ public class StartWindowController : Window
 		GameManager.Instance.StartGame(GameType.OneVsBot);
 	}
 
-	public override void OpenWindow(Hashtable table = null)
+	public override void OpenWindow(IInputWindowPatamerer parameter)
 	{
-		base.OpenWindow();
+		base.OpenWindow( parameter);
 	}
 
 	public override void CloseWindow()

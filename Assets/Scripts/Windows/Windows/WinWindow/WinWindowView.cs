@@ -11,6 +11,15 @@ public class WinWindowView : MonoBehaviour
 
 	public Button RestartButton;
 	public Button ToMainMenuButton;
+	public GridLayoutGroup ItemsGrid;
+	public PlayerInformationItem PlayerItemInstance;
+
+	public Text CurrentWinner;
+
+	public void SetCurrentWinnerLabel(string currentWinner)
+	{
+		CurrentWinner.text = currentWinner;
+	}
 
 	private void Awake()
 	{

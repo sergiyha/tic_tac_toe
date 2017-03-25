@@ -19,7 +19,7 @@ public class Bot : AbstractUser
 		//Debug.Log("But i'm a BOT");
 	}
 
-	private Stage _enemyStage { get { return UserController.Instance.users.SingleOrDefault(user => user.UserStage != UserStage).UserStage; } }
+	private Stage _enemyStage { get { return UserController.Instance.users.SingleOrDefault(user => user.GetUserStage() != UserStage).GetUserStage(); } }
 
 	private int ChooseOptimalVariation()
 	{
