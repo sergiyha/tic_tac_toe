@@ -6,33 +6,67 @@ using UI.Window;
 public class StartWindowController : Window
 {
 	public StartWindowView StartWindowView;
+	private GameType _gameType;
+	private GameDifficulty _gameDifficulty;
 
 	private void Awake()
 	{
-		StartWindowView.ClickOneVsBot += OnOneVsBotClick;
-		StartWindowView.ClickOneVsOne += OnOneVsOneClick;
-		StartWindowView.ClickBotVsOne += OnBotVsOneClick;
+		//подписываем контейнер игровых типов на контроллер
+		StartWindowView.GameTypeContainer.ClickOneVsBot += OnChooseGameType;
+		StartWindowView.GameTypeContainer.ClickOneVsOne += OnChooseGameType;
+		StartWindowView.GameTypeContainer.ClickBotVsOne += OnChooseGameType;
+
+		//подписываем контейнер сложностей на контроллер
+		StartWindowView.DiffContainer.ClickEasyBttn += OnChooseDifficulty;
+		StartWindowView.DiffContainer.ClickNormalBttn += OnChooseDifficulty;
+		StartWindowView.DiffContainer.ClickIncredibleBttn += OnChooseDifficulty;
+		StartWindowView.DiffContainer.ClickBack += OnClickBack;
 	}
 
 
-	private void OnBotVsOneClick()
+	private void OnChooseGameType(GameType gameType)
 	{
-		GameManager.Instance.StartGame(GameType.BotVsOne);
+		if (gameType == GameType.OneVsOne)
+		{
+			GameManager.Instance.StartGame(gameType);
+			return;
+		}
+
+		_gameType = gameType;
+		StartWindowView.GameTypeContainer.Close();
+		StartWindowView.DiffContainer.Open();
 	}
 
-	private void OnOneVsOneClick()
+	private void OnChooseDifficulty(GameDifficulty gameDifficulty)
 	{
-		GameManager.Instance.StartGame(GameType.OneVsOne);
+		_gameDifficulty = gameDifficulty;
+		GameManager.Instance.StartGame(_gameType, _gameDifficulty);
 	}
 
-	private void OnOneVsBotClick()
+	private void OnClickBack()
 	{
-		GameManager.Instance.StartGame(GameType.OneVsBot);
+		StartWindowView.GameTypeContainer.Open();
+		StartWindowView.DiffContainer.Close();
 	}
+
+
+
+
+
+
+	//private void OnOneVsOneClick()
+	//{
+	//	GameManager.Instance.StartGame(GameType.OneVsOne);
+	//}
+
+	//private void OnOneVsBotClick()
+	//{
+	//	GameManager.Instance.StartGame(GameType.OneVsBot);
+	//}
 
 	public override void OpenWindow(IInputWindowPatamerer parameter)
 	{
-		base.OpenWindow( parameter);
+		base.OpenWindow(parameter);
 	}
 
 	public override void CloseWindow()

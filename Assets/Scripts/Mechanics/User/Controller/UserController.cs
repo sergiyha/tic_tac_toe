@@ -11,7 +11,6 @@ public class UserController : MonoBehaviour
 	private UserController() { }
 
 	public AbstractUser currentUser { get; private set; }
-	private AbstractUser userWasFirst { get; set; }
 
 	public List<AbstractUser> users { get; private set; }
 
@@ -27,7 +26,8 @@ public class UserController : MonoBehaviour
 		}
 
 		DontDestroyOnLoad(this);
-		if (CellController.Instance.CellChanged == null)
+
+		if (!StaticTools.HandlerChecker.IsHandlerRegistred(OnCellChanged, CellController.Instance.CellChanged))
 		{
 			CellController.Instance.CellChanged += OnCellChanged;
 		}
@@ -36,56 +36,81 @@ public class UserController : MonoBehaviour
 
 	public void OnCellChanged()
 	{
-		Debug.Log("++++++++++++ChangeCell");
+		//Debug.Log("++++++++++++ChangeCell");
 		currentUser = users.SingleOrDefault(user => user != currentUser);
 		currentUser.Play();
 	}
 
 
-	public void CreateUsers<T, L>()
-		where T : AbstractUser
-		where L : AbstractUser
+	public void CreateUserVsUser()
 	{
-		var signature_1 = new object[2];
-		signature_1[0] = Stage.CROSS;
-		var signature_2 = new object[2];
-		signature_2[0] = Stage.ZERO;
-
-		if (typeof(T) == typeof(User) && typeof(L) == typeof(User))
-		{
-			signature_1[1] = "User_1";
-			signature_2[1] = "User_2";
-		}
-		else if (typeof(T) == typeof(Bot) && typeof(L) == typeof(Bot))
-		{
-			signature_1[1] = "Bot_1";
-			signature_2[1] = "Bot_2";
-		}
-		else
-		{
-			signature_1[1] = (typeof(T) == typeof(User)) ? "User" : "BOT";
-			signature_2[1] = (typeof(L) == typeof(User)) ? "User" : "BOT";
-		}
-
 		users = new List<AbstractUser>
 		{
-			(T)Activator.CreateInstance(typeof(T), signature_1),
-			(L)Activator.CreateInstance(typeof(L), signature_2)
+			new User(Stage.CROSS, "User 1"),
+			new User(Stage.ZERO,"User 2")
 		};
-		currentUser = users.SingleOrDefault(user => user.GetUserStage() == Stage.CROSS);
-		userWasFirst = currentUser;
-
-		//if (users.First().GetType() == typeof(Bot))
-		//	currentUser.Play();
+		SetCurrentUser();
 	}
 
-	//public void LetsGameStarted()
+	public void CreateBotVsUser(GameDifficulty gameDifficulty)
+	{
+		users = new List<AbstractUser>
+		{
+			new Bot(Stage.CROSS,"Bot", gameDifficulty),
+			new User(Stage.ZERO, "User")
+		};
+		SetCurrentUser();
+	}
+
+	public void CreateUserVsBot(GameDifficulty gameDifficulty)
+	{
+		users = new List<AbstractUser>
+		{
+			new User(Stage.CROSS, "User"),
+			new Bot(Stage.ZERO,"Bot", gameDifficulty)
+		};
+		SetCurrentUser();
+	}
+
+	void SetCurrentUser()
+	{
+		currentUser = users.SingleOrDefault(user => user.GetUserStage() == Stage.CROSS);
+	}
+
+	//public void CreateUsers<T, L>()
+	//	where T : AbstractUser
+	//	where L : AbstractUser
 	//{
-	//	if (currentUser is Bot && currentUser.GetUserStage() == Stage.CROSS)
+	//	var signature_1 = new object[2];
+	//	signature_1[0] = Stage.CROSS;
+	//	var signature_2 = new object[2];
+	//	signature_2[0] = Stage.ZERO;
+
+	//	if (typeof(T) == typeof(User) && typeof(L) == typeof(User))
 	//	{
-	//		currentUser.Play();
+	//		signature_1[1] = "User_1";
+	//		signature_2[1] = "User_2";
 	//	}
+	//	else if (typeof(T) == typeof(Bot) && typeof(L) == typeof(Bot))
+	//	{
+	//		signature_1[1] = "Bot_1";
+	//		signature_2[1] = "Bot_2";
+	//	}
+	//	else
+	//	{
+	//		signature_1[1] = (typeof(T) == typeof(User)) ? "User" : "BOT";
+	//		signature_2[1] = (typeof(L) == typeof(User)) ? "User" : "BOT";
+	//	}
+
+	//	users = new List<AbstractUser>
+	//	{
+	//		(T)Activator.CreateInstance(typeof(T), signature_1),
+	//		(L)Activator.CreateInstance(typeof(L), signature_2)
+	//	};
+	//	currentUser = users.SingleOrDefault(user => user.GetUserStage() == Stage.CROSS);
 	//}
+
+
 
 	public void ChooseCurrentPlayer()
 	{
@@ -103,10 +128,5 @@ public class UserController : MonoBehaviour
 	{
 		return users.SingleOrDefault(user => user.GetUserStage() == stage);
 
-	}
-
-	public void OnDisable()
-	{
-		CellController.Instance.CellChanged -= OnCellChanged;
 	}
 }

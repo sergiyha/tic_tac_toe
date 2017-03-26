@@ -14,6 +14,17 @@ public class ScriptableObjectManager : MonoBehaviour
 	private Dictionary<Type, ScriptableObject> _cachedObjects;
 	private void Awake()
 	{
+		if (_instance != null && _instance != this)
+		{
+			DestroyImmediate(this.gameObject);
+		}
+		else
+		{
+			_instance = this;
+		}
+
+		DontDestroyOnLoad(this);
+
 		_cachedObjects = new Dictionary<Type, ScriptableObject>();
 		LoadScrptblObjects();
 	}
@@ -34,16 +45,6 @@ public class ScriptableObjectManager : MonoBehaviour
 		{
 			_cachedObjects.Add(so.GetType(), so);
 		}
-		//DirectoryInfo soObjectsDirectory = new DirectoryInfo(_sOSourcePath);
-		//FileInfo[] files = soObjectsDirectory.GetFiles("*" + _fileExtention, SearchOption.AllDirectories);
-		//foreach (FileInfo file in files)
-		//{
-		//	string soFullPath = file.Directory + @"\" + file;
-		//	string destinationString = "Assets\\Resources\\";
-		//	string pathForLoad = soFullPath.Substring(soFullPath.LastIndexOf(destinationString) + destinationString.Length).Replace(_fileExtention, "");
-		//	ScriptableObject asset = (ScriptableObject)Resources.Load(pathForLoad, typeof(ScriptableObject));
-		//	_cachedObjects.Add(asset.GetType(), asset);
-		//}
 	}
 
 	private bool ISSOCached(Type type)

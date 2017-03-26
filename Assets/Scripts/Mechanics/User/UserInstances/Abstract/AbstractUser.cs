@@ -10,7 +10,7 @@ public abstract class AbstractUser
 		UserStage = stage;
 		Name = name;
 		GameManager.Instance.RoundEnds += OnRoundEnds;
-		GameManager.RoundBegins += OnRoundBegins;
+		GameManager.Instance.RoundBegins += OnRoundBegins;
 	}
 
 

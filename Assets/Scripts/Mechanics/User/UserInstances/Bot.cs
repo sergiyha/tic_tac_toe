@@ -5,18 +5,70 @@ using UnityEngine;
 
 public class Bot : AbstractUser
 {
-	public Bot(Stage stage, string name) : base(stage, name)
+	private GameDifficulty _botDifficulty;
+	private GameVariationsScrptblObject _gameVariationsSO;
+	private ProbabilityScriptableObject _probabilitySo;
+	private bool[] _probabilityToMistake;
+
+	public Bot(Stage stage, string name, GameDifficulty difficulty) : base(stage, name)
 	{
+		_botDifficulty = difficulty;
+		_gameVariationsSO = ScriptableObjectManager.Instance.GetObject<GameVariationsScrptblObject>();
+		_probabilitySo = ScriptableObjectManager.Instance.GetObject<ProbabilityScriptableObject>();
+		_probabilityToMistake = ChooseProbability();
+	}
+
+	private bool ShouldBotMakeMistake()
+	{
+		return _probabilityToMistake[Random.Range(0, _probabilityToMistake.Length)];
+	}
+
+	private bool[] ChooseProbability()
+	{
+		var neededProbabilityInstance = _probabilitySo.ProbabilityInnstances.First(pI => pI.Difficulty == _botDifficulty);
+		return neededProbabilityInstance.Probability;
 	}
 
 	public override void Play()
 	{
 		base.Play();
 
-		int cellToPlace = ChooseOptimalVariation();
+		int cellToPlace = GetCellToPlaceWithMistake();
 		CellController.Instance.cells[cellToPlace].SetButton.onClick.Invoke();
-		//Debug.Log(cellToPlace);
-		//Debug.Log("But i'm a BOT");
+	}
+
+	private int GetCellToPlaceWithMistake()
+	{
+		if (ShouldBotMakeMistake())//сделал ли бот ошибку
+		{
+			Debug.LogError("BOT	made mistake");
+
+			var listOfEnemyWinningCombinations = CheckIfUserHaveWinningCombination(_enemyStage, UserStage);
+			var listOfUserWinningCombinations = CheckIfUserHaveWinningCombination(UserStage, _enemyStage);
+			if (listOfUserWinningCombinations.Count >= 1)//может ли бот выиграть 
+			{
+				return GetProtectedStep(listOfUserWinningCombinations);
+			}
+			else if (listOfEnemyWinningCombinations.Count >= 1 && _botDifficulty == GameDifficulty.Normal)//если средний бот то поверяет может ли выиграть соперник
+			{
+				if (!ShouldBotMakeMistake())//ошибается ли бот при попытке помешать сопернику
+				{
+					return GetProtectedStep(listOfEnemyWinningCombinations);//если нет то не дает выиграть 
+				}
+				else
+				{
+					return GetFreePosition();
+				}
+			}
+			else//если не может выиграть или помешать то тупит
+			{
+				return GetFreePosition();//занимает рандомную пустую 
+			}
+		}
+		else//если бот не делает ошибку то отрабатывает стандартная логика 
+		{
+			return ChooseOptimalVariation();
+		}
 	}
 
 	private Stage _enemyStage { get { return UserController.Instance.users.SingleOrDefault(user => user.GetUserStage() != UserStage).GetUserStage(); } }
@@ -45,7 +97,7 @@ public class Bot : AbstractUser
 	{
 		var userWinningVariations = new List<Variation>();
 		var gameCellPosition = CellController.Instance.CurrentGameCellsPlace;
-		var variation = ScriptableObjectManager.Instance.GetObject<GameVariationsScrptblObject>().Variations;
+		var variation = _gameVariationsSO.Variations;
 		for (int i = 0; i < variation.Length; i++)
 		{
 			var currVariation = variation[i].variation;
@@ -97,7 +149,7 @@ public class Bot : AbstractUser
 		{
 			var gameCellPosition = CellController.Instance.CurrentGameCellsPlace;
 			List<int> positionsCanPlace = new List<int>();
-			var variation = ScriptableObjectManager.Instance.GetObject<GameVariationsScrptblObject>().Variations[id].variation;
+			var variation = _gameVariationsSO.Variations[id].variation;
 			for (int i = 0; i < variation.Length; i++)
 			{
 				if (variation[i] == true && gameCellPosition[i] == Stage.NAN)
@@ -121,7 +173,7 @@ public class Bot : AbstractUser
 	{
 		Dictionary<int, int> variationId_CoincidenceCount = new Dictionary<int, int>();
 
-		var variations = ScriptableObjectManager.Instance.GetObject<GameVariationsScrptblObject>().Variations;
+		var variations = _gameVariationsSO.Variations;
 		var gameCellsPlace = CellController.Instance.CurrentGameCellsPlace;
 		int variationId = 0;
 		for (int i = 0; i < variations.Length; i++)
@@ -155,19 +207,20 @@ public class Bot : AbstractUser
 		return variationId;
 	}
 
+
+
 	private int GetFreePosition()//call when useful variations == 0
 	{
+		List<int> freePositions = new List<int>();
 		var gameCellsPlace = CellController.Instance.CurrentGameCellsPlace;
-		int freeCell = 0;
 		for (int i = 0; i < gameCellsPlace.Length; i++)
 		{
 			if (gameCellsPlace[i] == Stage.NAN)
 			{
-				freeCell = i;
+				freePositions.Add(i);
 			}
-
 		}
-		return freeCell;
+		return freePositions[Random.Range(0, freePositions.Count)];
 	}
 
 
@@ -175,7 +228,7 @@ public class Bot : AbstractUser
 	{
 		var usefulVariations = new Dictionary<int, Variation>();
 		var gameCellsPlace = CellController.Instance.CurrentGameCellsPlace;
-		var variations = ScriptableObjectManager.Instance.GetObject<GameVariationsScrptblObject>().Variations;
+		var variations = _gameVariationsSO.Variations;
 		for (int i = 0; i < variations.Length; i++)
 		{
 			var currVariation = variations[i].variation;

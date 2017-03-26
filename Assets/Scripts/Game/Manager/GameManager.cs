@@ -11,13 +11,15 @@ public class GameManager : MonoBehaviour
 	private GameManager() { }
 
 	public GameType CurrGameType { get; private set; }
+	public GameDifficulty CurrGameDifficulty { get; private set; }
+
 	public Stage CurrentWinnerStage
 	{
 		get; private set;
 	}
 
 	public Action<Stage> RoundEnds;
-	public static Action<Stage> RoundBegins;
+	public Action<Stage> RoundBegins;
 
 	private void Awake()
 	{
@@ -31,11 +33,11 @@ public class GameManager : MonoBehaviour
 		}
 
 		DontDestroyOnLoad(this);
-		if (RoundEnds == null)
+
+		if (!StaticTools.HandlerChecker.IsHandlerRegistred(CacheCurrentWinner, RoundEnds))
 		{
 			RoundEnds += CacheCurrentWinner;
 		}
-
 	}
 
 	private void CacheCurrentWinner(Stage winnerStage)
@@ -43,28 +45,28 @@ public class GameManager : MonoBehaviour
 		CurrentWinnerStage = winnerStage;
 	}
 
-	public void StartGame(GameType gameType)
+	public void StartGame(GameType gameType, GameDifficulty gameDifficulty = GameDifficulty.NaN)
 	{
 		CurrGameType = gameType;
+		CurrGameDifficulty = gameDifficulty;
+
 		GamePreparation();
 
 	}
 
 	public void GamePreparation()
 	{
-		switch (CurrGameType)
+		if (CurrGameType == GameType.OneVsOne && CurrGameDifficulty == GameDifficulty.NaN)
 		{
-			case GameType.OneVsOne:
-				UserController.Instance.CreateUsers<User, User>();
-				break;
-			case GameType.OneVsBot:
-				UserController.Instance.CreateUsers<User, Bot>();
-				break;
-			case GameType.BotVsOne:
-				UserController.Instance.CreateUsers<Bot, User>();
-				break;
-			default:
-				break;
+			UserController.Instance.CreateUserVsUser();
+		}
+		else if (CurrGameType == GameType.OneVsBot && CurrGameDifficulty != GameDifficulty.NaN)
+		{
+			UserController.Instance.CreateUserVsBot(CurrGameDifficulty);
+		}
+		else if (CurrGameType == GameType.BotVsOne && CurrGameDifficulty != GameDifficulty.NaN)
+		{
+			UserController.Instance.CreateBotVsUser(CurrGameDifficulty);
 		}
 
 		SceneLoadManager.Instance.StartLoadScene(ScenesToLoad.FirstScene, _firstSceneCallback);

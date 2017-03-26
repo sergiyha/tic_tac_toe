@@ -23,6 +23,7 @@ public class SceneLoadManager : MonoBehaviour
 			_instance = this;
 		}
 		DontDestroyOnLoad(this);
+
 	}
 
 	public void StartLoadScene(ScenesToLoad sceneToLoad, Action afterSceneLoadingCallback)

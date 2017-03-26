@@ -10,7 +10,6 @@ public class CellController : MonoBehaviour
 	public static CellController Instance { get { return _instance = _instance ?? FindObjectOfType<CellController>(); } }
 
 	public Action CellChanged;
-	public static event Action<Stage> RoundEnds;
 
 	public CellController()
 	{

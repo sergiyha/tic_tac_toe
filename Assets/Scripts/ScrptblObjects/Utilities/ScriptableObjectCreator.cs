@@ -9,10 +9,15 @@ public class ScriptableObjectCreator : MonoBehaviour
 {
 
 	[MenuItem("Create/GameVariations")]
-	static void DoSomething()
+	static void CreateGameVariationsSO()
 	{
 		SU.CreateAsset<GameVariationsScrptblObject>();
 	}
 
+	[MenuItem("Create/Probability")]
+	static void CreateProbabilitySO()
+	{
+		SU.CreateAsset<ProbabilityScriptableObject>();
+	}
 }
 #endif
