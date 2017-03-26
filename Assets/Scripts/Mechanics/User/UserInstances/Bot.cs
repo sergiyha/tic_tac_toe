@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -20,7 +21,7 @@ public class Bot : AbstractUser
 
 	private bool ShouldBotMakeMistake()
 	{
-		return _probabilityToMistake[Random.Range(0, _probabilityToMistake.Length)];
+		return _probabilityToMistake[UnityEngine.Random.Range(0, _probabilityToMistake.Length)];
 	}
 
 	private bool[] ChooseProbability()
@@ -41,8 +42,6 @@ public class Bot : AbstractUser
 	{
 		if (ShouldBotMakeMistake())//сделал ли бот ошибку
 		{
-			Debug.LogError("BOT	made mistake");
-
 			var listOfEnemyWinningCombinations = CheckIfUserHaveWinningCombination(_enemyStage, UserStage);
 			var listOfUserWinningCombinations = CheckIfUserHaveWinningCombination(UserStage, _enemyStage);
 			if (listOfUserWinningCombinations.Count >= 1)//может ли бот выиграть 
@@ -92,7 +91,6 @@ public class Bot : AbstractUser
 		}
 	}
 
-
 	private List<Variation> CheckIfUserHaveWinningCombination(Stage checkedUser, Stage oppositeOpponent)
 	{
 		var userWinningVariations = new List<Variation>();
@@ -120,7 +118,6 @@ public class Bot : AbstractUser
 		}
 		return userWinningVariations;
 	}
-
 
 	private int GetProtectedStep(List<Variation> winningCombinations)
 	{
@@ -155,12 +152,16 @@ public class Bot : AbstractUser
 				if (variation[i] == true && gameCellPosition[i] == Stage.NAN)
 				{
 					positionsCanPlace.Add(i);
-					//neededCellPosition = i;
-					//break;
 				}
 			}
-
-			neededCellPosition = positionsCanPlace[Random.Range(0, positionsCanPlace.Count)];
+			if (_botDifficulty == GameDifficulty.Incredible && CheckCrossEnemyPositions())//если бот сложный и угрожает угловая позиция то выбираем нечетный целл из возможных в этой вариации
+			{
+				neededCellPosition = GetListOfFreeNotPairIndexPositions().Where(pos => positionsCanPlace.Any(canPlace => canPlace == pos)).First();
+			}
+			else
+			{
+				neededCellPosition = positionsCanPlace[UnityEngine.Random.Range(0, positionsCanPlace.Count)];
+			}
 		}
 		else
 		{
@@ -201,13 +202,71 @@ public class Bot : AbstractUser
 		else
 		{
 			List<int> bestVariationsId = variationId_CoincidenceCount.Keys.Where(id => variationId_CoincidenceCount[id] == variationId_CoincidenceCount.Values.Max()).ToList();
-			variationId = bestVariationsId[Random.Range(0, bestVariationsId.Count)];
-			//variationId = variationId_CoincidenceCount.First(id_Count => id_Count.Value == variationId_CoincidenceCount.Values.Max()).Key;
+			if (_botDifficulty == GameDifficulty.Incredible && CheckCrossEnemyPositions())//выбираем нужный id вариации который удовлетворяет наши пустые непарные места(если боту угрожает угловая вариация) 
+			{
+				variationId = GetIndexOfVariationByFreePositions(GetListOfFreeNotPairIndexPositions());
+			}
+			else
+			{
+				variationId = bestVariationsId[UnityEngine.Random.Range(0, bestVariationsId.Count)];
+			}
 		}
 		return variationId;
 	}
 
+	private int GetIndexOfVariationByFreePositions(List<int> freeIndexPositions)
+	{
+		List<Variation> listOfNeededVariations = new List<Variation>();
+		int place = freeIndexPositions[UnityEngine.Random.Range(0, freeIndexPositions.Count)];
+		listOfNeededVariations = _gameVariationsSO.Variations.Where(v => v.variation[place] == true).ToList();
+		var neededVariation = listOfNeededVariations[UnityEngine.Random.Range(0, listOfNeededVariations.Count)];
+		int variationIndex = Array.FindIndex(_gameVariationsSO.Variations, v => v == neededVariation);
+		return variationIndex;
+	}
 
+	private List<int> GetListOfFreeNotPairIndexPositions()
+	{
+		List<int> freeIndexPositions = new List<int>();
+		var cellStages = CellController.Instance.CurrentGameCellsPlace;
+		for (int i = 0; i < cellStages.Length; i++)
+		{
+			if (cellStages[i] == Stage.NAN && i % 2 != 0)
+			{
+				freeIndexPositions.Add(i);
+			}
+		}
+		return freeIndexPositions;
+	}
+
+	private bool CheckCrossEnemyPositions()//угрожает ли сложному боту угловая позиция игрока
+	{
+		int enemyCount = 0;
+		var cellStages = CellController.Instance.CurrentGameCellsPlace;
+		foreach (var cellStage in cellStages)
+		{
+			if (cellStage == _enemyStage)
+			{
+				enemyCount++;
+			}
+		}
+
+		if (enemyCount == 2)
+		{
+			if (cellStages[0] == _enemyStage && cellStages[8] == _enemyStage)
+			{
+				return true;
+			}
+			else if (cellStages[2] == _enemyStage && cellStages[6] == _enemyStage)
+			{
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+		else return false;
+	}
 
 	private int GetFreePosition()//call when useful variations == 0
 	{
@@ -220,9 +279,8 @@ public class Bot : AbstractUser
 				freePositions.Add(i);
 			}
 		}
-		return freePositions[Random.Range(0, freePositions.Count)];
+		return freePositions[UnityEngine.Random.Range(0, freePositions.Count)];
 	}
-
 
 	private Dictionary<int, Variation> GetVariationsThatCanBeUsefullAtFirst()
 	{
@@ -269,8 +327,7 @@ public class Bot : AbstractUser
 
 		List<int> listOfWithMaxPriority = cellNumberPriority.Keys.Where(cell => cellNumberPriority[cell] == cellNumberPriority.Values.Max()).ToList();
 
-		var neededCell = listOfWithMaxPriority[Random.Range(0, listOfWithMaxPriority.Count)];
-		//	var neededCell = cellNumberPriority.First(cellpriority => cellpriority.Value == cellNumberPriority.Values.Max()).Key;
+		var neededCell = listOfWithMaxPriority[UnityEngine.Random.Range(0, listOfWithMaxPriority.Count)];
 		return neededCell;
 	}
 }

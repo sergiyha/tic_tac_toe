@@ -18,7 +18,7 @@ public class WinWindowView : MonoBehaviour
 
 	public void SetCurrentWinnerLabel(string currentWinner)
 	{
-		CurrentWinner.text = currentWinner;
+		CurrentWinner.text = currentWinner + " Won";
 	}
 
 	private void Awake()

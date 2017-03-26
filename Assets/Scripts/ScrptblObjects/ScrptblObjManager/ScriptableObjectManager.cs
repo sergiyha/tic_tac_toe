@@ -16,7 +16,7 @@ public class ScriptableObjectManager : MonoBehaviour
 	{
 		if (_instance != null && _instance != this)
 		{
-			DestroyImmediate(this.gameObject);
+			Destroy(this.gameObject);
 		}
 		else
 		{
@@ -28,9 +28,6 @@ public class ScriptableObjectManager : MonoBehaviour
 		_cachedObjects = new Dictionary<Type, ScriptableObject>();
 		LoadScrptblObjects();
 	}
-	private const string _sOSourcePath = "Assets/Resources/ScriptableObjects";
-	private const string _fileExtention = ".asset";
-
 
 	public T GetObject<T>() where T : ScriptableObject
 	{
@@ -46,15 +43,4 @@ public class ScriptableObjectManager : MonoBehaviour
 			_cachedObjects.Add(so.GetType(), so);
 		}
 	}
-
-	private bool ISSOCached(Type type)
-	{
-		if (_cachedObjects.Keys.Contains(type))
-		{
-			return true;
-		}
-		else return false;
-	}
-
-
 }

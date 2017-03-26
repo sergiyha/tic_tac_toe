@@ -44,7 +44,6 @@ public class WindowManager : MonoBehaviour
 	{
 		if (_windowContainer == null)
 		{
-			Debug.Log(this.GetInstanceID());
 			_windowContainer = windowContainer;
 		}
 	}

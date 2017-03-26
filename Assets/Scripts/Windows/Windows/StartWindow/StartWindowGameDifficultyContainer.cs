@@ -25,6 +25,4 @@ public class StartWindowGameDifficultyContainer : Container
 		NormalBttn.onClick.AddListener(delegate { ClickNormalBttn(GameDifficulty.Normal); });
 		IncredibleBttn.onClick.AddListener(delegate { ClickIncredibleBttn(GameDifficulty.Incredible); });
 	}
-
-
 }

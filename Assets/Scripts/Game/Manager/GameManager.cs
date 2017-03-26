@@ -21,6 +21,7 @@ public class GameManager : MonoBehaviour
 	public Action<Stage> RoundEnds;
 	public Action<Stage> RoundBegins;
 
+
 	private void Awake()
 	{
 		if (_instance != null && _instance != this)
@@ -54,7 +55,7 @@ public class GameManager : MonoBehaviour
 
 	}
 
-	public void GamePreparation()
+	private void GamePreparation()
 	{
 		if (CurrGameType == GameType.OneVsOne && CurrGameDifficulty == GameDifficulty.NaN)
 		{
@@ -84,6 +85,7 @@ public class GameManager : MonoBehaviour
 	{
 		CellController.Instance.RefreshCellsData();
 		UserController.Instance.ChooseCurrentPlayer();
+		InterfaceManager.Instance.UpdateInterface();
 	}
 }
 

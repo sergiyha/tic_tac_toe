@@ -23,7 +23,6 @@ public class StartWindowController : Window
 		StartWindowView.DiffContainer.ClickBack += OnClickBack;
 	}
 
-
 	private void OnChooseGameType(GameType gameType)
 	{
 		if (gameType == GameType.OneVsOne)
@@ -48,21 +47,6 @@ public class StartWindowController : Window
 		StartWindowView.GameTypeContainer.Open();
 		StartWindowView.DiffContainer.Close();
 	}
-
-
-
-
-
-
-	//private void OnOneVsOneClick()
-	//{
-	//	GameManager.Instance.StartGame(GameType.OneVsOne);
-	//}
-
-	//private void OnOneVsBotClick()
-	//{
-	//	GameManager.Instance.StartGame(GameType.OneVsBot);
-	//}
 
 	public override void OpenWindow(IInputWindowPatamerer parameter)
 	{

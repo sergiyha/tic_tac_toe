@@ -34,9 +34,7 @@ public class SceneLoadManager : MonoBehaviour
 
 	private IEnumerator LoadGame(ScenesToLoad sceneToload, Action afterSceneLoadingCallback)
 	{
-		Debug.Log("Loading Level");
 		yield return SceneManager.LoadSceneAsync(ScenesPath + ((int)sceneToload).ToString());
-		Debug.Log("Scene " + sceneToload.ToString() + " Loaded");
 		afterSceneLoadingCallback();
 	}
 

@@ -8,6 +8,4 @@ public class StartWindowView : MonoBehaviour
 {
 	public StartWindowGameDifficultyContainer DiffContainer;
 	public StartWindowGameTypeContainer GameTypeContainer;
-
-	
 }
